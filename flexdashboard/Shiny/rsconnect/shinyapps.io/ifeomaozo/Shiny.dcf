@@ -1,0 +1,12 @@
+name: Shiny
+title: Shiny
+username: ifeomaozo
+account: ifeomaozo
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 9873065
+bundleId:
+url: https://ifeomaozo.shinyapps.io/Shiny/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE
