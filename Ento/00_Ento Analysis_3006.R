@@ -17,10 +17,11 @@ if ("ifeomaozodiegwu" %in% user) {
   user <- Sys.getenv("USERNAME")
   Drive <- file.path(gsub("[\\]", "/", gsub("Documents", "", Sys.getenv("HOME"))))
   NuDir <- file.path(Drive, "urban_malaria")
-  shapepath <- file.path(NuDir,"/data/nigeria/kano_ibadan_shape_files")
+  geopath <- file.path(NuDir,"data/nigeria/kano_ibadan")
+  shapepath <- file.path(geopath,"kano_ibadan_shape_files")
   NuCDir <- file.path(Drive, "my_stuff")
   ProjectDir <- file.path(NuDir, "data", 'nigeria','nigeria_dhs' , 'data_analysis')
-  EntoDat <- file.path(NuDir, "data", "nigeria", "kano_ibadan_ento", "Osun-excel")
+  EntoDat <- file.path(geopath, "kano_ibadan_ento", "Osun-excel")
   ResultDir <-file.path(NuDir, "projects/project_implementation/analysis_output/ento_plots")
   DataDir <- file.path(ProjectDir, 'data', 'DHS', 'Downloads')
   PreDir <- file.path(NuDir, "presentations/team member archive_Ifeoma/2023/230704_WHO/pictures")
@@ -108,7 +109,7 @@ all_dat <- rbind(cdc, psc, lar)
 #shapefiles
 df_ib = st_read(file.path(shapepath, "ibadan_metro_ward_fiveLGAs", "Ibadan_metro_fiveLGAs.shp")) %>%
   mutate(WardName = ifelse(WardName == 'Oranyan' & LGACode == '31007', 'Oranyan_7', WardName))
-df_ko = st_read(file.path(shapepath, "Kano_metro_ward_fiveLGAs", "Kano_metro_ward_fiveLGAs.shp"))
+df_ko = st_read(file.path(shapepath, "Kano_metro_ward_sixLGAs", "Kano_metro_ward_sixLGAs.shp"))
 
 st_crs(df_ko)<- 4326
 
@@ -338,6 +339,23 @@ p1<- ggplot(pdat, aes(x =`Settlement Type`, y=num_ano , fill = `Breeding site`))
   labs(x = "Settlement Classification", y="Number of Anopheles larva prospected")+
   theme_manuscript()+
   theme(legend.position = "bottom")
+
+
+names(lar)
+pdat <- lar %>%  dplyr::filter(Anopheles !=0)%>% mutate(location = paste0(Latitude, Longitude)) %>%  
+  group_by(`location`, `Breeding site`) %>%  summarise(num_ano = sum(Anopheles))
+
+pdat <- lar %>% mutate(location = paste0(Latitude, Longitude)) %>%  
+  group_by(Anopheles) %>%  summarise(mean_temp = mean(Temp, na.rm = T))
+#what is the distance between larval prospection site?
+
+p1<- ggplot(pdat, aes(x =`Settlement Type`, y=num_ano , fill = `Breeding site`))+
+  geom_bar(stat = "identity", position = "stack")+
+  scale_fill_manual(name= "", values =c("#FFB3B3", "#FFDBA4"))+
+  labs(x = "Settlement Classification", y="Number of Anopheles larva prospected")+
+  theme_manuscript()+
+  theme(legend.position = "bottom")
+
 
 #clear or polluted in settlement 
 pdat <- lar %>%  dplyr::filter(Anopheles !=0) %>%  mutate(WN = case_when(`Water nature` == "clean" ~ "Clean",
@@ -644,7 +662,8 @@ lav <- rbind(dat[[1]], dat[[2]])
 names(lav)
 
 ##Larval Habitat - Ibadan
-lav_ib <- lav %>%  dplyr::filter(State == "Oyo") %>%  group_by(`Settlement Type`, Month) %>% 
+lav_ib <- lav %>% dplyr::filter(State == "Oyo")%>%
+  group_by(`Settlement Type`, Month) %>% 
   summarise(total_mosquitoes = sum(`Anopheles`, na.rm = T)) %>% ungroup()
 
 #table(lav$State, lav$Breeding.site)
