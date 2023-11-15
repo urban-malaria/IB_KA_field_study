@@ -679,7 +679,132 @@ ggplot(ind_surv, aes(x = as.factor(WARD), y = count))+
   geom_bar(stat = "identity", fill = "lightblue", width = 0.5, position = "stack") +
   facet_wrap(~ Gender)+
   labs(title = "Number of Questionnaires Administered per Ward",
-       x = "Ward Visited",
-       y = "Number of Questionnaires")+
-  theme_manuscript1()+
+       x = "Ward Visited",Hcheck <- summary_SET%>% select (ACT_use, )
+
+colors <- c("Checked" = "green3", "Unchecked" = "red3")
+
+# Create  plot with proportions and colored bars
+
+
+summary_SET <- summary_SET %>% 
+          dplyr::rename('ACT_use' = `q415..What.drugs.did..NAME..take.for.the.last.episode.of.fever.or.suspected.diagnosed.malaria....DO.NOT.READ.OUT.OPTIONS..MULTIPLE.RESPONSE.ALLOWED..PROBE.FOR.ALL.DRUGS.USED.BY..NAME...Repeat.for.every.child.who.had.a.fever.or.suspected.diagnosed.malaria..choice.Artemisinin.Combination.Therapy..ACT..`)
+
+summary_SET <- summary_SET %>%
+  mutate(ACT_use = ifelse(ACT_use == "Checked", "Yes", ACT_use))
+
+summary_SET <- summary_SET %>%
+  mutate(ACT_use = ifelse(ACT_use == "Unchecked", "No", ACT_use))
+
+ggplot(summary_SET, aes(fill=ACT_use, y=Proportion, x=SETTLEMENT.TYPE)) + 
+  geom_bar(position="stack", stat="identity")+
+  #scale_fill_manual(values = c(`PROP_NEG` = "palegreen", `PROP_POS` = "coral3")) +
+  geom_text(aes(x = SETTLEMENT.TYPE, y= Proportion, label = count), vjust = 0.9, size = 3) +
+  #facet_grid(~ Ward)+
+  labs(title = "ACT use by settlement type")+
+  theme_manuscript()+
+  theme(legend.position = c(0.90, 0.85))+
   theme(strip.background = element_rect(fill = "khaki", color = "black"))
+
+p_net <- ggplot(summary_SET, aes(x = `SETTLEMENT.TYPE`, y = Proportion, fill = `ACT_use`))+
+  geom_bar(stat = "identity")+
+  scale_fill_manual(values = c(`Yes` = "palegreen", `No` = "coral3")) +
+  geom_text(aes(label = sprintf("%.1f%%", Proportion)),
+            position = position_stack(vjust = 0.5),
+            vjust = -0.5)+
+labs(title = "ACT use for malaria in children by settlement type in households in Ibadan")+
+xlab("Settlement Type") +
+  ylab("Proportion of women")+
+  theme_manuscript()+
+  theme(legend.position = c(0.90, 0.90))
+
+##Boxplot of ACT Use
+act_boxpl <- ggplot(data=summary_SET, aes(x=as.factor(SETTLEMENT.TYPE), 
+                                          y=Proportion, color= as.factor(SETTLEMENT.TYPE))) +
+  geom_boxplot()+
+  geom_jitter()+
+  labs(title= "Distribution of ACT use clustered by enumeration area per settlement type")+
+  labs(x = "settle", fill = "EA",
+       y = "act_use")+
+  theme_manuscript()+
+  theme(legend.position = c(0.90, 0.90))
+
+
+# Apply the color scale
+
+# Print the plot
+print(p_net)
+
+
+kn_wm_surv <- kn_wm_surv %>%
+  mutate_if(is.character, as.factor)
+
+kn_wm_survc <- kn_wm_surv %>%
+  group_by(`Serial.Number`) %>%
+  fill(everything())
+
+kn_wm_survc <- kn_wm_surv %>%
+    group_by(`Serial.Number`) %>%
+    mutate_all(na.locf)
+
+wm_surv_all <- rbind(kn_wm_surv, ib_wm_surv)
+
+View(ib_wm_surv)
+
+table(kn_wm_surv$SETTLEMENT.TYPE, kn_wm_surv$q401..Have.any.of.your.children.been.ill.with.a.fever.in.the.last.2.weeks.)
+
+child_fever <- ib_wm_surv %>%
+  dplyr::filter(q401..Have.any.of.your.children.been.ill.with.a.fever.in.the.last.2.weeks. == "Yes")
+
+
+case_sm <- child_fever %>% 
+  group_by(`SETTLEMENT.TYPE`) %>% 
+  summarise(count = n())%>%
+  drop_na()
+
+  
+
+case_m <- child_fever %>% 
+  group_by(`SETTLEMENT.TYPE`, `q415..What.drugs.did..NAME..take.for.the.last.episode.of.fever.or.suspected.diagnosed.malaria....DO.NOT.READ.OUT.OPTIONS..MULTIPLE.RESPONSE.ALLOWED..PROBE.FOR.ALL.DRUGS.USED.BY..NAME...Repeat.for.every.child.who.had.a.fever.or.suspected.diagnosed.malaria`) %>% 
+  summarise(count = n())
+
+
+table(child_fever$SETTLEMENT.TYPE, child_fever$q415..What.drugs.did..NAME..take.for.the.last.episode.of.fever.or.suspected.diagnosed.malaria....DO.NOT.READ.OUT.OPTIONS..MULTIPLE.RESPONSE.ALLOWED..PROBE.FOR.ALL.DRUGS.USED.BY..NAME...Repeat.for.every.child.who.had.a.fever.or.suspected.diagnosed.malaria)
+
+settle <- c("Formal", "Informal", "Slum", "Formal", "Informal", "Slum")
+EA <- c("23", "45", "45", "12", "01", "09")
+act_use <- c(34,23,14, 2,7,8)
+
+act_used <- cbind(settle, EA, act_use)
+act_used <- data.frame(act_used)
+
+##Boxplot of ACT Use
+act_boxpl <- ggplot(data=summary_SET, aes(x=as.factor(SETTLEMENT.TYPE), 
+                                                 y=Proportion, color= as.factor(SETTLEMENT.TYPE))) +
+  geom_boxplot()+
+  geom_jitter()+
+  labs(title= "Distribution of ACT use clustered by enumeration area per settlement type")+
+  labs(x = "settle", fill = "EA",
+       y = "act_use")+
+  theme(legend.position = "none")
+
+
+
+# Create a sample data frame with groups
+set.seed(123)
+data <- data.frame(
+  Group = rep(c("A", "B", "C"), each = 20),
+  Values = rnorm(1000)
+)
+
+# Create a boxplot by groups
+boxplot(Values ~ Group, data = data, 
+        main = "Boxplot by Groups",
+        xlab = "Group",
+        ylab = "Values",
+        col = c("lightblue", "lightgreen", "lightpink"))
+
+ggplot(data, aes(x = Group, y = Values)) +
+  geom_boxplot()+
+  geom_jitter()+
+  labs(title = "Boxplot by Groups", x = "Group", y = "Values",
+       col = c("lightblue", "lightgreen", "lightpink"))
