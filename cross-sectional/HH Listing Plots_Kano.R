@@ -26,7 +26,11 @@ if ("ifeomaozodiegwu" %in% user) {
   NuDir <- file.path(Drive, "urban_malaria")
   shapepath <- file.path(NuDir,"/data/nigeria/kano_ibadan_shape_files")
   NuCDir <- file.path(Drive, "my_stuff")
+
   NuDPDir <- file.path(Drive, "Desktop", "NU STUFF","Desktop")
+
+  NuDPDir <- file.path(Drive, "Desktop")
+
   ProjectDir <- file.path(NuDir, "data", 'nigeria','nigeria_dhs' , 'data_analysis')
   EADat <- file.path(NuDir, "data", "nigeria", "kano_ibadan_epi", "EA_data")
   EpiDir <- file.path(NuDir, "data", "nigeria", "kano_ibadan_epi", "Shiny data")
@@ -39,6 +43,7 @@ if ("ifeomaozodiegwu" %in% user) {
 ##Household Listed Plots
 
 hh_list_k <- read.csv ("C:/Users/DELL/Desktop/NU STUFF/Desktop/kn_hh_list_2209.csv")
+
 hh_list_k <- read.csv(file.path(NuDPDir, "kn_hh_list_2209.csv"))
 
 # Extract the 'x' and 'y' columns
@@ -61,7 +66,11 @@ hh_list_z <- hh_list_x%>% dplyr::filter(Ward == "Zango")
 
 
 ## read ibadan ward shape files
+
 df_ko = st_read(file.path(NuDPDir, "Kano_metro_ward_fiveLGAs", "Kano_metro_ward_fiveLGAs.shp")) 
+
+df_ko = st_read(file.path(shapepath, "Kano_metro_ward_fiveLGAs", "Kano_metro_ward_fiveLGAs.shp")) 
+
 
 p <- ggplot(df_ko) +
   geom_sf(fill = "khaki") +

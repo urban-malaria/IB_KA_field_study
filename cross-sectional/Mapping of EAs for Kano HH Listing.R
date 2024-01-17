@@ -323,7 +323,10 @@ gi_hh <- gi_hh [-row_to_delete, ]
 gi_hh_df <- sf::st_as_sf(gi_hh, coords=c('Longitude', 'Latitude'), crs=4326)
 
 # Perform st transformation
+
 st_crs(df_kn_gin) <- 4326
+
+st_crs(df_kn_gi) <- 4326
 
 st_crs(gi_hh_df) <- 4326
 
@@ -334,11 +337,17 @@ g_inter <- st_intersection(df_kn_gin, gi_hh_df)
 p <- ggplot(df_kn_gin) +
   geom_sf(fill = NA) +
   geom_point(data = g_inter,  aes(geometry = geometry, size = 3.0, col = Settlement), stat= "sf_coordinates")+
+
+g_inter <- st_intersection(df_kn_gi, gi_hh_df)
+
+p <- ggplot(df_kn_gi) +
+  geom_sf(fill = NA) +
+  geom_point(data = g_inter,  aes(geometry = geometry, size = 2.0, col = Settlement), stat= "sf_coordinates")+
   scale_color_manual(values = c(Formal = "#00A08A", Informal = "#F2A6A2"))+
   geom_text_repel(
     data = g_inter,
     aes(label =  `EA_code`, geometry = geometry),color ='black',
-    stat = "sf_coordinates", min.segment.length = 0, size = 4.5, force = 1, max.overlaps = Inf)+
+    stat = "sf_coordinates", min.segment.length = 0, size = 3.5, force = 1, max.overlaps = Inf)+
   guides(size = FALSE)+
   map_theme()+ 
   ylab("")+

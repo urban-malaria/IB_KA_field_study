@@ -46,6 +46,9 @@ library(rsconnect)
 
 hh_list_k <- read.csv(file.path(NuDPDir, "kn_hh_list_0109.csv"))
 
+hh_list_k <- read.csv(file.path(HHDir, "kn_hh_list_0109.csv"))
+
+
 # Extract the 'x' and 'y' columns
 
 hh_list_x <- hh_list_k[, c("Ward", "EA.Serial.Number", "X_Enter.GPS.Location_latitude",
