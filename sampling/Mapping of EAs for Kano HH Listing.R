@@ -13,7 +13,7 @@ DataDir <- file.path(ProjectDir, 'data', 'DHS', 'Downloads')
 
 #=======
 user <- Sys.getenv("USER")
-if ("ifeomaozodiegwu" %in% user) {
+if ("yousouphe" %in% user) {
   Drive <- file.path(gsub("[\\]", "/", gsub("Documents", "", Sys.getenv("HOME"))))
   NuDir <- file.path(Drive, "Library", "CloudStorage", "OneDrive-NorthwesternUniversity", "urban_malaria")
   EntoDat <- file.path(NuDir, "data", "nigeria", "kano_ibadan_ento", "Osun-excel")
