@@ -5,12 +5,124 @@ library(dplyr)
 library(ggplot2)
 library(patchwork)
 
+df1 <- read_csv('/Users/user/Downloads/UrbanMalariaHFS_DATA_LABELS_2024-02-28_1805.csv')
 
+df1 <- df1 %>%
+  mutate_if(is.character, as.factor)
 
 dflong<-read_csv('/Users/user/Downloads/UrbanMalariaLongitud_DATA_LABELS_2024-02-05_1410_Kano.csv')
 
 dflong <- dflong %>%
   mutate_if(is.character, as.factor)
+
+
+dfcss<-read_csv('UrbanMalariaHousehol_DATA_LABELS_2024-02-29_1711 (2).csv')
+
+dfcss <- dfcss %>%
+  mutate_if(is.character, as.factor)
+
+
+dfcss_ <- dfcss %>%
+  group_by(`Serial Number`) %>%
+  fill(4:25)
+
+View(dfcss_)
+
+library(openxlsx)
+
+
+write.xlsx(dfcss_, "Cross_sectional.xlsx", rowNames = FALSE) 
+dfcss_$`Line Number...26` <- gsub("0", "", dfcss_$`Line Number...26`)
+summary_Children_line <-  dfcss_   %>%
+  filter(`Line Number...26` >= 3)
+
+
+#select( Ward,`Serial Number`, `INTERVIEWER'S NAME...15`,`q302: RESULT` )
+
+View(summary_Children_line)
+
+
+table(dfcss_$`Line Number...26`)
+
+
+table(dfcss_$`q302: RESULT`) 
+
+table(summary_Children_line$`q302: RESULT`) 
+
+#Positive children-----
+summary_Children_line_p <-  dfcss_   %>%
+  filter(`q302: RESULT` == "POSITIVE")%>%
+group_by(`Ward`,`Serial Number`, `INTERVIEWER'S NAME...15`) %>%
+summarise(
+ Total_Count = n()
+) 
+
+
+
+View(summary_Children_line_p)
+
+summary_Children_line_3 <-  summary_Children_line_p   %>%
+  filter(Total_Count > 1)
+
+View(summary_Children_line_3)
+
+write.xlsx(summary_Children_line_3, "Cross_sectional_Line_number_issues.xlsx", rowNames = FALSE) 
+
+summary_Children_line_Int <-  summary_Children_line_3   %>%
+group_by(`INTERVIEWER'S NAME...15`) %>%
+  summarise(
+    Total_Count_RAs = n(),
+  ) |>
+  select(`INTERVIEWER'S NAME...15`, Total_Count_RAs )
+
+View(summary_Children_line_Int)
+
+#POSITIVE HHS----
+
+dfcss_$`Line Number...26` <- gsub("0", "", dfcss_$`Line Number...26`)
+summary_Children_line <-  dfcss_   %>%
+  filter(`Line Number...26` == 3 ) %>%
+  group_by(`Ward`,`Serial Number`, `INTERVIEWER'S NAME...15`) %>%
+  summarise(
+    Total_Count = n(),
+  ) |>
+  select( Ward,`Serial Number`, `INTERVIEWER'S NAME...15`, Total_Count )
+
+
+
+summary_Children_line_3 <-  summary_Children_line   %>%
+  filter(Total_Count > 1, `q302: RESULT` == 'POSITIVE')
+
+View(summary_Children_line_3)
+
+write.xlsx(summary_Children_line_3, "Cross_sectional_Line_number_issues.xlsx", rowNames = FALSE) 
+
+summary_Children_line_Int <-  summary_Children_line_3   %>%
+  group_by(`INTERVIEWER'S NAME...15`) %>%
+  summarise(
+    Total_Count_RAs = n(),
+  ) |>
+  select(`INTERVIEWER'S NAME...15`, Total_Count_RAs )
+
+View(summary_Children_line_Int)
+
+
+
+
+lnplot<-ggplot(summary_Children_line_Int,
+                 aes(reorder(`INTERVIEWER'S NAME...15`, -Total_Count_RAs ),Total_Count_RAs), size =4 , ) +
+  geom_bar(stat = "identity", fill="#661133")+
+  geom_text(aes(label = signif(Total_Count_RAs)), nudge_y = 0, vjust = -0.5) +
+  #geom_text(aes(label =`INTERVIEWER'S NAME...15` ), nudge_y = 25, vjust = -0.7, ) +
+  labs(#title = "Health Facility Survey",
+    # subtitle = "Plot of Achievement by Month",
+    # caption = "Data source : Health Facility Survey, Kano"
+  )
+lnplot <- lnplot + theme_manuscript() +labs(y= "Total Completed by Month", x = "")  + theme(axis.text.x = element_text(angle = 90))
+lnplot
+
+
+
 
 #Summary by DATE OF BIRTH----
 
@@ -588,13 +700,13 @@ phcplot1<-phcplot1 + theme_manuscript() +labs(y= "Total Completed in PHC", x = "
 phcplot1
 
 
-#Summary by Dates All Months----
+#Summary by Dates All Months with target----
 
 df1$Datef <- as.Date(dflong$`Date`, format = "%m/%d/%Y")
 View(df1)
 
 summary_Date_ <-  df1  %>%
-  filter ( !(`Ward` == 'Zango'| `Ward` == 'Dorayi'| `Ward` == 'Giginyu'| `Ward` == 'Fagge D2'| `Ward` == 'Gobirawa') , (`Ward` %in% Allowedwards) ) %>%
+ # filter ( !(`Ward` == 'Zango'| `Ward` == 'Dorayi'| `Ward` == 'Giginyu'| `Ward` == 'Fagge D2'| `Ward` == 'Gobirawa') , (`Ward` %in% Allowedwards) ) %>%
   group_by(`Date`, `INTERVIEWER'S NAME`) %>%
   summarise(
     Total_Completed_by_DATE = n(),
@@ -604,7 +716,7 @@ summary_Date_ <-  df1  %>%
   select( `Date`, `INTERVIEWER'S NAME`, Total_Completed_by_DATE )
 View(summary_Date_)
 
-summary_Date_$MonthNum <- gsub("/","" ,substr(summary_Date_$`Date`, 4, 5))
+summary_Date_$MonthNum <- gsub("/","" ,substr(summary_Date_$`Date`, 6, 7))
 
 summary_Month_ <-  summary_Date_  %>%
   group_by(MonthNum, `INTERVIEWER'S NAME`) %>%
@@ -645,16 +757,16 @@ time_series_plot <- ggplot(summary_Month, aes(x = as.factor(MonthNum), y = Total
 print(time_series_plot)
 
 
-# Monthly target value
+#Monthly target value------
 monthly_target <- 775
 
-# Create a time series plot
+# Create a time series plot for target ----
 time_series_plot1 <- ggplot(summary_Month, aes(x = MonthNum, y = Total_Completed_in_Month, group = 1)) +
   geom_line() +
   geom_point(aes(label = Total_Completed_in_Month), size = 0, color = "green4") +  # Annotate points with Total_Completed_in_Month
-  geom_text(aes(label = Total_Completed_in_Month), size = 4, color = "purple")+
-  geom_hline(yintercept = monthly_target, linetype = "dashed", color = "red") +  # Add target line
-  annotate("text", x = 1, y = monthly_target, label = paste("Target:", monthly_target), hjust = -0.2, vjust = 0.5, color = "red") +  # Annotate target value
+  geom_text(aes(label = Total_Completed_in_Month), hjust = 0.5, vjust = 0.1, size = 4, color = "purple")+
+  geom_hline(yintercept = monthly_target, linetype = "dashed", color = "orange") +  # Add target line
+  annotate("text", x = 1, y = monthly_target, label = paste("Target:", monthly_target), size=3, hjust = -0.2, vjust = 0.5, color = "red") +  # Annotate target value
   labs(title = "Health Facility Survey Achievement by Month",
        subtitle = "Plot of Completed interviews by Month",
        caption = "Data source : Health Facility Survey, Kano") +

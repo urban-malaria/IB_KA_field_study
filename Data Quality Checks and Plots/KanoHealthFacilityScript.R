@@ -7,12 +7,12 @@ library(patchwork)
 
 
 
-df1<-read_csv('/Users/user/Downloads/UrbanMalariaHFS_DATA_LABELS_2024-02-18_1651 Latest.csv')
+df1<-read_csv('/Users/user/Downloads/UrbanMalariaHFS_DATA_LABELS_2024-03-28_2042.csv')
 
 df1 <- df1 %>%
   mutate_if(is.character, as.factor)
 
-
+View(df1)
 #Summary by DATE----
 wardds<- c("Zango","Tudun Wazurci","Dorayi", "Fagge D2","Gobirawa")
 summary_Date <-  df1  %>%
@@ -456,7 +456,7 @@ lgplot1ns
   )
 summary_lga_sel <-  df1  %>%
   filter ( (`Ward` == 'Zango'| `Ward` == 'Dorayi'| `Ward` == 'Giginyu'| `Ward` == 'Fagge D2'| `Ward` == 'Gobirawa') | !(`Ward` %in% Allowedwards) ) %>%
-  group_by(`NAME OF HEALTH FACILITY`, `Ward`) %>%
+  group_by(`NAME OF HEALTH FACILITY`, `Ward`, `Serial Number`) %>%
   summarise(
     Total_Completed_by_LGA = n(),
     Positive_Count = sum(nrow(`Ward`))
@@ -464,6 +464,21 @@ summary_lga_sel <-  df1  %>%
   select(`NAME OF HEALTH FACILITY`,`Ward`,  Total_Completed_by_LGA )
 View(summary_lga_sel)
 print(sum(summary_lga_sel$Total_Completed_by_LGA))
+
+#Out of Scope Addresses ----
+summary_lga_sel <-  df1  %>%
+  filter ( (`Ward` == 'Zango'| `Ward` == 'Dorayi'| `Ward` == 'Giginyu'| `Ward` == 'Fagge D2'| `Ward` == 'Gobirawa') | !(`Ward` %in% Allowedwards) ) %>%
+  group_by(`NAME OF HEALTH FACILITY`, `Ward`, `Serial Number`, `RESPONDENTS ADDRESS`) %>%
+  summarise(
+    Total_Completed_by_LGA = n(),
+    Positive_Count = sum(nrow(`Ward`))
+  ) |>
+  select(`NAME OF HEALTH FACILITY`,`Ward`,  `Serial Number`, `RESPONDENTS ADDRESS` )
+View(summary_lga_sel)
+
+
+print(sum(summary_lga_sel$Total_Completed_by_LGA))
+
 
 theme_manuscript <- function(){
   theme_bw() +
@@ -586,23 +601,20 @@ plot(tablecompletion) + theme_manuscript()
 
 summary_phc <-  df1  %>%
  # filter ( !(`Ward` == 'Zango'| `Ward` == 'Dorayi'| `Ward` == 'Tudun Wazurci'| `Ward` == 'Fagge D2'| `Ward` == 'Gobirawa') , (`Ward` %in% Allowedwards) ) %>%
-  group_by(`NAME OF HEALTH FACILITY`) %>%
+  group_by(`NAME OF HEALTH FACILITY...6`) %>%
   summarise(
     Total_Completed_by_PHC = n(),
-    Positive_Count = sum(nrow(`NAME OF HEALTH FACILITY`))
+    Positive_Count = sum(nrow(`NAME OF HEALTH FACILITY...6`))
   ) |>
-  select(`NAME OF HEALTH FACILITY`,  Total_Completed_by_PHC )
+  select(`NAME OF HEALTH FACILITY...6`,  Total_Completed_by_PHC )
 
 View(summary_phc)
 
-x <- c(summary_phc$`NAME OF HEALTH FACILITY`)
-y <- c(summary_phc$Total_Completed_by_PHC)
-
 phcplot<-ggplot(summary_phc,
-                aes(x=reorder(`NAME OF HEALTH FACILITY`,-Total_Completed_by_PHC),y=Total_Completed_by_PHC), ) +
+                aes(x=reorder(`NAME OF HEALTH FACILITY...6`,-Total_Completed_by_PHC),y=Total_Completed_by_PHC), ) +
   geom_bar(stat = "identity" , fill="#991199")+
   geom_text(aes(label = signif(Total_Completed_by_PHC)), nudge_y = 2, vjust = -0.5) +
-  geom_text(aes(label =`NAME OF HEALTH FACILITY` ), nudge_y = 20, vjust = -0.5 ) +
+  geom_text(aes(label =`NAME OF HEALTH FACILITY...6` ), nudge_y = 20, vjust = -0.5 ) +
   labs(#title = "Health Facility Survey",
        #subtitle = "Plot of Completed interviews by PHC",
        caption = "Data source : Health Facility Survey, Kano"
@@ -657,7 +669,7 @@ summary_Date_ <-  df1  %>%
   select( `Date`, `INTERVIEWER'S NAME`, Total_Completed_by_DATE )
 View(summary_Date_)
 
-summary_Date_$MonthNum <- gsub("/","" ,substr(summary_Date_$`Date`, 4, 5))
+summary_Date_$MonthNum <- gsub("/","" ,substr(summary_Date_$`Date`, 6, 7))
 
 summary_Month_ <-  summary_Date_  %>%
   group_by(MonthNum, `INTERVIEWER'S NAME`) %>%
@@ -2004,18 +2016,18 @@ p_net+p_nethang+p_netused_yesterday
 table(df1$Ward,df1$`q503: RESULT`)
 #Test Status by Health Facility  ----
 wardresult <- df1 %>%
-  filter ( !(`Ward` == 'Zango'| `Ward` == 'Dorayi'| `Ward` == 'Tudun Wazurci'| `Ward` == 'Fagge D2'| `Ward` == 'Gobirawa') , (`Ward` %in% Allowedwards) ) %>%
+ # filter ( !(`Ward` == 'Zango'| `Ward` == 'Dorayi'| `Ward` == 'Tudun Wazurci'| `Ward` == 'Fagge D2'| `Ward` == 'Gobirawa') , (`Ward` %in% Allowedwards) ) %>%
   filter ( (`q503: RESULT` =='POSITIVE' |  `q503: RESULT` =='NEGATIVE' ))%>%
-  group_by(`NAME OF HEALTH FACILITY`, `q503: RESULT`) %>%
+  group_by(`NAME OF HEALTH FACILITY...6`, `q503: RESULT`) %>%
   summarize(Count = n()) %>%
   ungroup() %>%
-  group_by(`NAME OF HEALTH FACILITY`) %>%
+  group_by(`NAME OF HEALTH FACILITY...6`) %>%
   mutate(Total = sum(Count), Proportion = Count / Total * 100)
 
 colors <- c("NEGATIVE" = "green3", "POSITIVE" = "red3")
 
 # Create a basic bar plot with proportions and colored bars
-plot_wardresult <- ggplot(wardresult, aes(x = `NAME OF HEALTH FACILITY`, y = Proportion, fill = `q503: RESULT`)) +
+plot_wardresult <- ggplot(wardresult, aes(x = `NAME OF HEALTH FACILITY...6`, y = Proportion, fill = `q503: RESULT`)) +
   geom_bar(stat = "identity") +
   geom_text(aes(label = sprintf("%.1f%%", Proportion)),
             position = position_stack(vjust = 0.5),
