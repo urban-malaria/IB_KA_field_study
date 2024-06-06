@@ -12,7 +12,7 @@ df1 <- df1 %>%
 
 
 
-df_filled3 <- df1 %>%
+df_filled <- df1 %>%
   group_by(`Serial Number`) %>%
   fill(2:7, 20:26)
 
