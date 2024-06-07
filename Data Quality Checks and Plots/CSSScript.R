@@ -5,18 +5,26 @@ library(dplyr)
 library(ggplot2)
 library(patchwork)
 
-df1 <- read_csv('/Users/user/Downloads/UrbanMalariaHFS_DATA_LABELS_2024-02-28_1805.csv')
+df1 <- read_csv('Downloads/all_malaria_data (1).csv')
 
 df1 <- df1 %>%
   mutate_if(is.character, as.factor)
 
+dfcss_ <- df1 %>%
+  group_by(`settlement_type`, ) %>%
+  summarise(
+    Count = n()
+    
+  )
+
+View(dfcss_)
 dflong<-read_csv('/Users/user/Downloads/UrbanMalariaLongitud_DATA_LABELS_2024-02-05_1410_Kano.csv')
 
 dflong <- dflong %>%
   mutate_if(is.character, as.factor)
 
 
-dfcss<-read_csv('UrbanMalariaHousehol_DATA_LABELS_2024-02-29_1711 (2).csv')
+dfcss<-read_csv('/Users/user/Downloads/UrbanMalariaHousehol-DataUpdate2_DATA_LABELS_2024-05-14_1654.csv')
 
 dfcss <- dfcss %>%
   mutate_if(is.character, as.factor)
@@ -24,17 +32,22 @@ dfcss <- dfcss %>%
 
 dfcss_ <- dfcss %>%
   group_by(`Serial Number`) %>%
-  fill(4:25)
+  fill(2:7, 21:26)
 
 View(dfcss_)
+#dfcss_$`Ward` <- gsub("Others", "Giginyu", dfcss_$`Ward`)
+
+
 
 library(openxlsx)
 
 
 write.xlsx(dfcss_, "Cross_sectional.xlsx", rowNames = FALSE) 
 dfcss_$`Line Number...26` <- gsub("0", "", dfcss_$`Line Number...26`)
-summary_Children_line <-  dfcss_   %>%
-  filter(`Line Number...26` >= 3)
+
+dfcss_$`Line Number...8` <- as.numeric(dfcss_$`Line Number...8`)
+dfcsss_   <-  dfcss_   %>%
+  filter(`Line Number...8` >=3)
 
 
 #select( Ward,`Serial Number`, `INTERVIEWER'S NAME...15`,`q302: RESULT` )
@@ -42,7 +55,7 @@ summary_Children_line <-  dfcss_   %>%
 View(summary_Children_line)
 
 
-table(dfcss_$`Line Number...26`)
+table(dfcss_$`Line Number...8`)
 
 
 table(dfcss_$`q302: RESULT`) 
@@ -50,11 +63,11 @@ table(dfcss_$`q302: RESULT`)
 table(summary_Children_line$`q302: RESULT`) 
 
 #Positive children-----
-summary_Children_line_p <-  dfcss_   %>%
+summary_Children_line_p <-  dfcsss_   %>%
   filter(`q302: RESULT` == "POSITIVE")%>%
-group_by(`Ward`,`Serial Number`, `INTERVIEWER'S NAME...15`) %>%
+group_by(`Ward`,`Serial Number`, `Settlement Type` ,`INTERVIEWER'S NAME`) %>%
 summarise(
- Total_Count = n()
+  Total_Positives = n()
 ) 
 
 
@@ -62,31 +75,30 @@ summarise(
 View(summary_Children_line_p)
 
 summary_Children_line_3 <-  summary_Children_line_p   %>%
-  filter(Total_Count > 1)
+  filter(Total_Positives > 1)
 
 View(summary_Children_line_3)
 
-write.xlsx(summary_Children_line_3, "Cross_sectional_Line_number_issues.xlsx", rowNames = FALSE) 
+write.xlsx(summary_Children_line_3, "Cross_sectional_Line_number_issues wet season v1.xlsx", rowNames = FALSE) 
 
 summary_Children_line_Int <-  summary_Children_line_3   %>%
-group_by(`INTERVIEWER'S NAME...15`) %>%
+group_by(`INTERVIEWER'S NAME`) %>%
   summarise(
     Total_Count_RAs = n(),
   ) |>
-  select(`INTERVIEWER'S NAME...15`, Total_Count_RAs )
+  select(`INTERVIEWER'S NAME`, Total_Count_RAs )
 
 View(summary_Children_line_Int)
 
 #POSITIVE HHS----
 
-dfcss_$`Line Number...26` <- gsub("0", "", dfcss_$`Line Number...26`)
+dfcss_$`q300i_new: Line Number` <- as.numeric(dfcss_$`q300i: Line Number`)
 summary_Children_line <-  dfcss_   %>%
-  filter(`Line Number...26` == 3 ) %>%
-  group_by(`Ward`,`Serial Number`, `INTERVIEWER'S NAME...15`) %>%
+  filter(`q300i: Line Number` == 3 ) %>%
+  group_by(`Ward`,`Settlement Type`,`Serial Number`, `INTERVIEWER'S NAME`,`q300i_new: Line Number`,`q302: RESULT`) %>%
   summarise(
     Total_Count = n(),
-  ) |>
-  select( Ward,`Serial Number`, `INTERVIEWER'S NAME...15`, Total_Count )
+  ) 
 
 
 
@@ -206,6 +218,78 @@ lgplot
 ###Interviewer Name ----
 
 
+#css
+
+summary_int <-  dfcss_  %>%
+  mutate(`INTERVIEWER'S NAME` = recode(`INTERVIEWER'S NAME`,
+    "ABBA MAHMUD ABBAS" = "ABBAS MAHMUD ABBAS",
+    "ABBAAS MAHMUD ABBAS" = "ABBAS MAHMUD ABBAS",
+    "ABBAS MAHMOUD ABBAS" = "ABBAS MAHMUD ABBAS",
+    "ABBAS MAHMUD" = "ABBAS MAHMUD ABBAS",
+    "AMIR RAYYAN" = "AMEER RAYYAN MUHAMMAD",
+    "ABDUL HAMID INUWA KILISHI" = "ABDULHAMID INUWA KILISHI",
+    "ABDULLAH ALI" = "ABDULLAHI ALI",
+    "ABDULLAHI  ALI" = "ABDULLAHI ALI",
+    "AHMAD MUHAMMAD BELLO" = "AHMAD MUHMMAD BELLO",
+    "AISHA MUHAMMAD TELE" = "AISHA MUHAMMAD TELA",
+    "AUWAL Kabir ado" = "AUWAL KABIR ADO",
+    "AUWALKABIRADO" = "AUWAL KABIR ADO",
+    "AUWAL" = "AUWAL KABIR ADO",
+    "BINTA DANASABE MUHAMMAD" = "BINTA DANASABE",
+    "BINTA" = "BINTA DANASABE",
+    "KHADIJA MUSA MUHAMMAD'S" = "KHADIJA MUSA MUHAMMAD",
+    "KHADIJAH ISAH  BASHIR" = "KHADIJAH ISAH BASHIR",
+    "MARYAM  L  SANI" = "MARYAM LAWAN SANI",
+    "Maryam Salis Adam" = "MARYAM SALISU ADAM",
+    "MARYAM SALISU ADAM" = "MARYAM SALISU ADAM",
+    "MUHAMMAD AHAMAD BELLO" = "MUHAMMAD AHMAD BELLO",
+    "SANI IBRAHM" = "SANI IBRAHIM SALISU",
+    "SANI IBRAHIM SALISU IBRAHIM" = "SANI IBRAHIM SALISU",
+    "MAHMUDA SUNUSI 3" = "MAHMUDA SUNUSI ABDULLAHI",
+    "MARAYAM L SANI" = "MARYAM LAWAN SANI",
+    "Dr MUKHTAR" = "DR MUKHTAR",
+    "HAUWA"="HAUWA MUHAMMAD",
+    "JAMILU" = "JAMILU UMAR",
+    "JUWAIRIYYA"="JUWAIRIYYA LAWAL YAKUB",
+    "JUWAIRIYYA LAWAL"="JUWAIRIYYA LAWAL YAKUB",
+    "KHADIJA ISAH"="KHADIJAH ISAH BASHIR",
+    "MARYAM L SANI" = "MARYAM LAWAN SANI",
+    "MARYAM" = "MARYAM LAWAN SANI",
+    "MARYAM SALIS ADAM" = "MARYAM SALISU ADAM",
+    
+    "MURJANATU RABIU"="MURJANATU RABIU BATURE",
+    "NAFIU SANI" = "NAFIU SANI WALI",
+    "RABIA" = "RABIA DANJUMA",
+  "SAKINA  AHMAD GAFAI"="SAKINA AHMAD GAFAI",
+  "SAKINA AHMAD"="SAKINA AHMAD GAFAI",
+  "SANI IBRAHIM"="SANI IBRAHIM SALISU"
+    
+  ))%>%
+  
+  filter ( `Complete?...35` =='Complete', `Complete?...71` =='Complete',`Complete?...74` =='Complete',`Complete?...94` =='Complete',`Complete?...106` =='Complete', `Complete?...118` =='Complete' ) %>%
+  group_by(Ward, `INTERVIEWER'S NAME`) %>%
+  summarise(
+    Total_Completed = n()
+  ) |>
+  select(Ward, `INTERVIEWER'S NAME`,Total_Completed )
+View(summary_int)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#HFS
 
 
 df1$`INTERVIEWER'S NAME` <- gsub("A'ISHA MUKHTAR", "AISHA MUKHTAR", df1$`INTERVIEWER'S NAME`)
@@ -238,17 +322,40 @@ theme_manuscript <- function(){
           legend.key.height = unit(1, "cm"))
 }
 
-lgplot1<-ggplot(summary_int, aes(x=reorder(`INTERVIEWER'S NAME`,-Total_Completed),Total_Completed, fill=`NAME OF HEALTH FACILITY`) )+
-  geom_bar(stat = "identity")+
+lgplot1<-ggplot(summary_int, aes(x=reorder(`INTERVIEWER'S NAME`,-Total_Completed),Total_Completed, fill=`Ward`) )+
+  geom_bar(stat = "identity", colour="brown", fill="khaki") +
+  geom_point(aes(size=Total_Completed, color=Ward))+
+  scale_size_continuous(range = c(3, 8), guide = FALSE)  +
   # geom_text(aes(label = paste0(`q124b: How many pregnancies have you had`," Pregnancies")), nudge_y = 20, vjust = -1.9) +
-  geom_text(aes(label = paste0(signif(Total_Completed))), nudge_y = 2, vjust = -0.5 ) +
-  labs(title = "Health Facility Survey : Number of Completed",
+  geom_text(size=3,colour="white",aes(label = paste0(Total_Completed)))+
+  labs(title = "Cross Sectional Survey : Number of Completed",
        #subtitle = "From the graph we can see that some respondents visits the health facility from different LGAs even from outside of the selected LGAs, this might be due to  among other \n reasons proximity of the residence to the Health Facilities, We could not classify some other ",
-       caption = "Data source : Health Facility Survey, Kano"
+       caption = "Data source : Cross Sectional Survey, Kano"
   )
 
 lgplot1<-lgplot1 + theme_manuscript() +labs(y= "Total Completed by Interviewer", x = " ")+ theme(axis.text.x = element_text(angle = 90)) 
 lgplot1
+
+#Ward counts CSS
+summary_ward <-  dfcss_  %>%
+  filter ( `Complete?...35` =='Complete', `Complete?...71` =='Complete',`Complete?...74` =='Complete',`Complete?...94` =='Complete',`Complete?...106` =='Complete', `Complete?...118` =='Complete' ) %>%
+  group_by(`Ward`) %>%
+  summarise(
+    Total_Completed = n()
+  ) 
+wardplot<-ggplot(summary_ward, aes(x=reorder(`Ward`,-Total_Completed),Total_Completed) )+
+  geom_bar(stat = "identity", colour="brown", fill="khaki") +
+  geom_point(aes(size=Total_Completed, color=Ward))+
+  scale_size_continuous(range = c(9, 13), guide = FALSE)  +
+  # geom_text(aes(label = paste0(`q124b: How many pregnancies have you had`," Pregnancies")), nudge_y = 20, vjust = -1.9) +
+  geom_text(size=4,colour="white",aes(label = paste0(Total_Completed)))+
+  labs(title = "Cross Sectional Survey : Number of Completed",
+       #subtitle = "From the graph we can see that some respondents visits the health facility from different LGAs even from outside of the selected LGAs, this might be due to  among other \n reasons proximity of the residence to the Health Facilities, We could not classify some other ",
+       caption = "Data source : Cross Sectional Survey, Kano"
+  )
+
+wardplot1<-wardplot + theme_manuscript() +labs(y= "Total Completed by Ward", x = " ")+ theme(axis.text.x = element_text(angle = 90)) 
+wardplot1
 
 
 
