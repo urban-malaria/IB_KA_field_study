@@ -268,7 +268,7 @@ household_data_with_46_PCA_Scores <- household_data_detailed[,-52]
 prefix <- "wealth_index_PCA_"
 
 # Loop through the first 46 columns of pc_scores and assign them to household_data_with_46_PCA_Scores
-for (i in 1:46) {
+for (i in 1:45) {
   col_name <- paste0(prefix, i)  # Generate distinct column name
   household_data_with_46_PCA_Scores[[col_name]] <- pc_scores[, i]  # Assign PCA scores to new column
 }
@@ -279,7 +279,7 @@ View(household_data_with_46_PCA_Scores)
 
 # Calculate mean and median
 mean_value <- mean(household_data_detailed$wealth_index)
-mode_value <- mode(household_data_detailed$wealth_index)
+median_value <- median(household_data_detailed$wealth_index)
 
 ggplot(household_data_detailed,aes(x=settlement_type_new, y=wealth_index))+
  geom_boxplot(data=household_data_detailed, aes(x=settlement_type_new, y=wealth_index), outlier.shape = NA) + theme_manuscript()+
@@ -350,3 +350,4 @@ print(pc_scores)
 var_explained <- pca_result$sdev^2 / sum(pca_result$sdev^2)
 plot(var_explained, xlab="Principal Component", ylab="Proportion of Variance Explained",
      type='b', pch=19, col="blue", main="Variance Explained by Each Principal Component")
+
