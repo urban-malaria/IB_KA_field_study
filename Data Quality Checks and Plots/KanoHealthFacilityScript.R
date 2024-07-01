@@ -2877,7 +2877,21 @@ print(plot_wardresult)
     filter(StateCode =="OG")
   st_write(shape_Ogun, 'Ogun_Wards.shp')
   
-  
+  osogbowards <- c('Aagba',
+                   'Aare',
+                   'Ataoja A',
+                   'Ataoja B',
+                   'Ataoja C',
+                   'Ataoja D',
+                   'Ataoja E',
+                   'Baba Kekere',
+                   'Ekerin',
+                   'Eketa',
+                   'Jagun a',
+                   'Jagun B',
+                  'Otun Balogun a',
+                  'Otun Hagun B',
+                  'Otun Jagun a')
   
   osunwards <- c('Aagba',
                  'Aare',
@@ -3217,8 +3231,8 @@ print(plot_wardresult)
   
   
   ggplot(shape_Osun_)+
-    geom_sf(data=shape_Osun_,aes(geometry=geometry))+
-    geom_sf(data =shape_Osun,aes(fill =WardName))
+    geom_sf(data=shape_Osun_,aes(geometry=geometry))
+    #geom_sf(data =shape_Osun,aes(fill =WardName))
   
   
   st_write(shape_Osun, 'Osun_Wards.shp')

@@ -206,6 +206,11 @@ library(labelled)
  # select(`Serial Number`, `INTERVIEWER'S NAME...15` , `Settlement Type` ,Ward,`HOUSEHOLD COORDINATE- Latitude`,`HOUSEHOLD COORDINATE- Longitude` )
 #View(dframe)
 
+sampled <- read_xlsx("/Users/user/Downloads/KN Sampled HHs_2024.xlsx")
+dframe <- sampled
+
+
+
 dframe <- hh
 
 dframe1<-read_csv('/Users/user/Downloads/UrbanMalariaHousehol-DataUpdate2_DATA_LABELS_2024-01-14_1648_Wet_season.csv')%>%
@@ -227,6 +232,11 @@ shapeslga <- st_read(dsn = "/Users/user/Downloads/gadm36_NGA_shp/", layer = "gad
 View(shapeslga)
 
 
+
+#Sampled HH rename of Lat and Long
+names(dframe)[names(dframe) == "_entergpslocation_latitude"] <- "Latitude"
+names(dframe)[names(dframe) == "_entergpslocation_longitude"] <- "Longitude"
+	
 
 #Dry season rename of Lat and Long
 names(dframe)[names(dframe) == "$bi7_lat"] <- "Latitude"
@@ -254,6 +264,7 @@ map_theme <- function(){
         rect = ggplot2::element_blank(),
         plot.background = ggplot2::element_rect(fill = "white", colour = NA),
         plot.title = element_text(hjust = 0.5),
+        panel.grid =  ggplot2::element_blank(),
         legend.title.align=0.5,
         legend.title=element_text(size=8, colour = 'black'),
         legend.text =element_text(size = 8, colour = 'black'),
@@ -276,6 +287,183 @@ intersects_a1 <- st_intersection(gps, shp)
 
 
 
+#Sampled
+
+
+dff <- dframe%>%
+  filter(!is.na(Longitude) & !is.na(Latitude))
+dff$Longitude <- as.numeric(dff$Longitude)
+dff$Latitude <- as.numeric(dff$Latitude)
+
+dff <- dff%>%
+  filter(!is.na(Longitude) & !is.na(Latitude))
+#remove other wards from the shape file
+shp <- shape
+#define the coordinates
+gps <- sf::st_as_sf(dff, coords=c("Longitude", "Latitude"), crs=4326)
+# Perform spatial intersection
+st_crs(gps) <- 4326
+st_crs(shp) <- 4326
+intersects_a1 <- st_intersection(gps, shp)
+
+distances <- st_distance(gps, all)
+
+
+
+zangoshp <- shp %>%
+  filter(WardName =="Zango")
+
+zangodt <- gps %>%
+  filter(ward =="Zango")
+
+st_crs(zangodt) <- 4326
+st_crs(zangoshp) <- 4326
+
+distances <- st_distance(zangodt, zangoshp)
+
+# Find the minimum distance for each point
+min_distances <- apply(distances, 1, min)
+
+# Add the distances as a new column in the gps data frame
+zangodt$distance_to_ward <- min_distances
+
+
+# Summarize the distances
+distance_summary <- summary(zangodt$distance_to_ward)
+
+# Extract the required statistics
+min_distance <- distance_summary["Min."]
+median_distance <- distance_summary["Median"]
+mean_distance <- distance_summary["Mean"]
+max_distance <- distance_summary["Max."]
+
+# Print the summary statistics
+cat("Summary of Distances to Ward Boundaries (in meters):\n")
+cat("Minimum Distance:", min_distance, "meters \n")
+cat("Median Distance:", median_distance, "meters \n")
+cat("Mean Distance:", mean_distance, "meters \n")
+cat("Maximum Distance:", max_distance, "meters\n")
+
+
+
+# Create a boxplot of the distances
+ggplot(zangodt, aes(x = "", y = distance_to_ward)) +
+  geom_boxplot() +
+  labs(
+    title = "Boxplot of Distances to Ward Boundaries",
+    y = "Distance to Ward",
+    x = ""
+  ) +
+  theme_manuscript()
+
+
+
+
+
+
+
+
+
+
+giginyushp <- shp %>%
+  filter(WardName =="Giginyu")
+
+giginyudt <- gps %>%
+  filter(ward =="Giginyu")
+
+st_crs(giginyudt) <- 4326
+st_crs(giginyushp) <- 4326
+
+distances <- st_distance(giginyudt, giginyushp)
+
+# Find the minimum distance for each point
+min_distances <- apply(distances, 1, min)
+
+# Add the distances as a new column in the gps data frame
+giginyudt$distance_to_ward <- min_distances
+
+
+# Summarize the distances
+distance_summary <- summary(giginyudt$distance_to_ward)
+
+# Extract the required statistics
+min_distance <- distance_summary["Min."]
+median_distance <- distance_summary["Median"]
+mean_distance <- distance_summary["Mean"]
+max_distance <- distance_summary["Max."]
+
+# Print the summary statistics
+cat("Summary of Distances to Ward Boundaries (in meters):\n")
+cat("Minimum Distance:", min_distance, "meters \n")
+cat("Median Distance:", median_distance, "meters \n")
+cat("Mean Distance:", mean_distance, "meters \n")
+cat("Maximum Distance:", max_distance, "meters\n")
+
+
+
+# Create a boxplot of the distances
+ggplot(giginyudt, aes(x = "", y = distance_to_ward)) +
+  geom_boxplot() +
+  labs(
+    title = "Boxplot of Distances to Giginyu Ward Boundary",
+    y = "Distance to Ward",
+    x = ""
+  ) +
+  theme_manuscript()
+
+
+
+
+
+dorayishp <- shp %>%
+  filter(WardName =="Dorayi")
+
+dorayidt <- gps %>%
+  filter(ward =="Dorayi")
+
+st_crs(dorayidt) <- 4326
+st_crs(dorayishp) <- 4326
+
+distances <- st_distance(dorayidt, dorayishp)
+
+# Find the minimum distance for each point
+min_distances <- apply(distances, 1, min)
+
+# Add the distances as a new column in the gps data frame
+dorayidt$distance_to_ward <- min_distances
+
+
+# Summarize the distances
+distance_summary <- summary(dorayidt$distance_to_ward)
+
+# Extract the required statistics
+min_distance <- distance_summary["Min."]
+median_distance <- distance_summary["Median"]
+mean_distance <- distance_summary["Mean"]
+max_distance <- distance_summary["Max."]
+
+# Print the summary statistics
+cat("Summary of Distances to Ward Boundaries (in meters):\n")
+cat("Minimum Distance:", min_distance, "meters \n")
+cat("Median Distance:", median_distance, "meters \n")
+cat("Mean Distance:", mean_distance, "meters \n")
+cat("Maximum Distance:", max_distance, "meters\n")
+
+
+
+# Create a boxplot of the distances
+ggplot(dorayidt, aes(x = "", y = distance_to_ward)) +
+  geom_boxplot() +
+  labs(
+    title = "Boxplot of Distances to Dorayi Ward Boundary",
+    y = "Distance to Ward",
+    x = ""
+  ) +
+  theme_manuscript()
+
+
+
+
 
 dff <- dframe%>%
   filter(!is.na(bi7_long) & !is.na(bi7_lat))
@@ -295,7 +483,7 @@ intersects_a1 <- st_intersection(gps, shp)
 
 
 invalid_gps <- dframe %>%
-  filter(!`sn` %in% intersects_a1$sn)
+  filter(!`_index` %in% intersects_a1$`X_index`)
 
 write_csv(invalid_gps,"Invalid GPS Captured in wet season")
 
@@ -305,6 +493,26 @@ invalid_gps__ <- intersects_a1 %>%
   filter(!(WardName=="Giginyu" | WardName=="Dorayi" | WardName=="Fagge D2" | WardName=="Gobirawa" | WardName=="Zango"))
 
 write_csv(invalid_gps__,"Invalid GPS Captured Wet season.csv")
+
+
+
+
+points <- intersects_a1$geometry
+wards <- all %>%
+  filter(WardName == "Zango")
+# Calculate distances
+
+distances <- st_distance(points, wards)
+
+# Find the minimum distance for each point
+min_distances <- apply(distances, 1, min)
+
+# Add the distances as a new column in the points data frame
+points$distance_to_ward <- min_distances
+
+# View the points data frame with the new distances column
+print(points)
+
 
 
 invalid_gps_ <- invalid_gps__ %>%
@@ -328,6 +536,10 @@ ggplot(invalid_gps_, aes(reorder(WardName,-total_issues), total_issues ), colour
        subtitle = "GPS Position of households surveyed outside of Kano Metropolis",
        caption = "Data source : Dry Season Cross Sectional Survey, Kano",
   )
+
+
+
+
 
 
 serials_ <- invalid_gps %>%
@@ -406,15 +618,50 @@ intersects_a1 <- intersects_a1 %>%
                        "2" = "Informal", 
                        "3" = "Slum"
                       ))
-#plot
+
+
+
+#plot HH Listing
 ggplot(all)+
-  geom_point(data = intersects_a1,  aes(geometry = geometry, colour=bi3), size=0.5, stat= "sf_coordinates")+
+  geom_point(data = intersects_a1,  aes(geometry = geometry, colour=settlement), size=0.2, stat= "sf_coordinates")+
   scale_color_manual(values = c(Formal = "#00A08A", Informal = "#F2A6A2" , Slum = "#923159"))+
   geom_sf_text(data=all,aes(label = WardName , geometry=geometry) ) +
   #geom_sf_text(data=intersects_a1, aes(label = ea_names , geometry=geometry),size=1 ) +
   geom_sf(fill = NA) +
   guides(size = FALSE)+
-  map_theme()+
+  theme_minimal() +
+  theme(axis.text = element_blank(),  # Remove axis text
+        axis.title = element_blank(),  # Remove axis titles
+        axis.line = element_blank(),   # Remove axis lines
+        panel.grid.major = element_blank(),  # Remove major grid lines
+        panel.grid.minor = element_blank(),  # Remove minor grid lines
+        panel.background = element_blank()
+  ) +  # Remove panel background
+  theme_manuscript()+
+  ylab("")+
+  xlab("")+
+  labs(title = "Cross Sectional Survey Geo-points of Households Sampled",
+       subtitle = "GPS Position of HHs Sampled from HH Listing in Kano by Settlement type",
+       caption = "Data source : HH Sampling Data, Kano"
+  )+
+  coord_sf()
+
+#plot
+ggplot(all)+
+  geom_point(data = intersects_a1,  aes(geometry = geometry, colour=settlement), size=0.5, stat= "sf_coordinates")+
+  scale_color_manual(values = c(Formal = "#00A08A", Informal = "#F2A6A2" , Slum = "#923159"))+
+  geom_sf_text(data=all,aes(label = WardName , geometry=geometry) ) +
+  #geom_sf_text(data=intersects_a1, aes(label = ea_names , geometry=geometry),size=1 ) +
+  geom_sf(fill = NA) +
+  guides(size = FALSE)+
+  theme_minimal() +
+  theme(axis.text = element_blank(),  # Remove axis text
+        axis.title = element_blank(),  # Remove axis titles
+        axis.line = element_blank(),   # Remove axis lines
+        panel.grid.major = element_blank(),  # Remove major grid lines
+        panel.grid.minor = element_blank(),  # Remove minor grid lines
+        panel.background = element_blank()
+  ) +  # Remove panel background
   theme_manuscript()+
   ylab("")+
   xlab("")+
@@ -423,6 +670,60 @@ ggplot(all)+
        caption = "Data source : Wet Season Cross Sectional Survey, Kano"
   )+
   coord_sf()
+
+
+ggplot(all) +
+  geom_point(data = intersects_a1, aes(geometry = geometry, colour = bi3), size = 0.5, stat = "sf_coordinates") +
+  scale_color_manual(values = c(Formal = "#00A08A", Informal = "#F2A6A2", Slum = "#923159")) +
+  geom_sf_text(data = all, aes(label = WardName, geometry = geometry)) +
+  geom_sf(fill = NA) +
+  guides(size = FALSE) +
+  map_theme() +
+  theme(axis.text = element_blank(),  # Remove axis text
+        axis.title = element_blank(),  # Remove axis titles
+       axis.line = element_blank(),   # Remove axis lines
+        panel.grid.major = element_blank(),  # Remove major grid lines
+        panel.grid.minor = element_blank(),  # Remove minor grid lines
+        panel.background = element_blank()
+      ) +  # Remove panel background
+  labs(title = "Cross Sectional Survey Geo-points of Households Surveyed",
+       subtitle = "GPS Position of HHs surveyed in Kano by Settlement type",
+       caption = "Data source: Wet Season Cross Sectional Survey, Kano") +
+  coord_sf() +
+  ylab(NULL) +  # Remove y-axis label
+  xlab(NULL)    # Remove x-axis label
+
+
+
+ggplot(all) +
+  geom_point(data = intersects_a1, aes(geometry = geometry, colour = bi3), size = 0.5, stat = "sf_coordinates") +
+  scale_color_manual(values = c(Formal = "#00A08A", Informal = "#F2A6A2", Slum = "#923159"), name="Settlement Type") +
+  geom_sf_text(data = all, aes(label = WardName, geometry = geometry)) +
+  geom_sf(fill = NA) +
+  guides(size = FALSE) +
+  theme_manuscript() +
+  map_theme()+
+  theme(axis.text = element_blank(),  # Remove axis text
+        axis.title = element_blank(),  # Remove axis titles
+        axis.line = element_blank(),   # Remove axis lines
+        panel.grid.major = element_blank(),  # Remove major grid lines
+        panel.grid.minor = element_blank(),  # Remove minor grid lines
+        panel.background = element_blank(),  # Remove panel background
+        plot.background = element_rect(color = "grey", size = 0.1)) +  # Add plot border
+  labs(title = "Cross Sectional Survey Geo-points of Households Surveyed",
+       subtitle = "GPS Position of HHs surveyed in Kano by Settlement type",
+       caption = "Data source: Wet Season Cross Sectional Survey, Kano") +
+  coord_sf() +
+  ylab(NULL) +  # Remove y-axis label
+  xlab(NULL)    # Remove x-axis label
+
+
+
+
+
+
+
+
 
 
 
