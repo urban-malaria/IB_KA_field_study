@@ -19,7 +19,9 @@ wardds<- c("Zango","Giginyu","Dorayi", "Fagge D2","Gobirawa","Olopomewa","Basoru
 #  filter ( `Complete1` =='Complete' ) %>%
 #summary_Date <-  df1  %>%
 # filter ( `Complete1` =='Complete' , (`LGA of Address`=="Kano Municipal" | `LGA of Address` == "Tarauni" |`LGA of Address`=="Dala" |`LGA of Address`=="Nassarawa"|`LGA of Address`=="Gwale" |`LGA of Address` =="Fagge"), `Number of Pregnancy New`< 5, !(`Ward` %in% wardds) ) %>%
-df_filtered <- df1[!(df1$`Ward` %in% wardds), ] %>%
+df_filtered <- df1[!(df1$`Ward` %in% wardds), ] 
+
+df_filtered_summary <- df_filtered %>%
   group_by(`State`) %>%
   summarise(
     Total = n(),
@@ -28,6 +30,70 @@ df_filtered <- df1[!(df1$`Ward` %in% wardds), ] %>%
   select(`State`,  Total)
 #Meettarget=775-df1$Total_Completed_by_DATE
 View(df_filtered)
+
+
+#df_filtered <- df_filtered %>%
+#  mutate(`q124b: How many pregnancies have you had` = recode(`q124b: How many pregnancies have you had`, 
+ #                                           "01" = '1', 
+  #                                          "02" = '2', 
+   #                                         "04" = '4' 
+    #                                      ))
+
+#df_filtered <- df_filtered %>%
+ # mutate(`q124c: How many pregnancies were carried to term?` = recode(`q124c: How many pregnancies were carried to term?`, 
+  #                                                           "01" = '1', 
+   #                                                          "02" = '2', 
+    #                                                         "03" = '3' 
+  #))
+
+df_filtered_n <- df_filtered %>%
+  mutate(
+    `q124b: How many pregnancies have you had` = as.numeric(as.character(`q124b: How many pregnancies have you had`)),
+    `q124c: How many pregnancies were carried to term?` = as.numeric(as.character(`q124c: How many pregnancies were carried to term?`))
+  ) 
+
+
+df_filtered_n$`q124b: How many pregnancies have you had`[df_filtered_n$State == 'Kano' & df_filtered_n$`q124b: How many pregnancies have you had` == 1] <- 0
+df_filtered_n$`q124b: How many pregnancies have you had`[df_filtered_n$State == 'Kano' & df_filtered_n$`q124b: How many pregnancies have you had` == 2] <- 1
+df_filtered_n$`q124b: How many pregnancies have you had`[df_filtered_n$State == 'Kano' & df_filtered_n$`q124b: How many pregnancies have you had` == 3] <- 2
+df_filtered_n$`q124b: How many pregnancies have you had`[df_filtered_n$State == 'Kano' & df_filtered_n$`q124b: How many pregnancies have you had` == 4] <- 3
+df_filtered_n$`q124b: How many pregnancies have you had`[df_filtered_n$State == 'Kano' & df_filtered_n$`q124b: How many pregnancies have you had` == 5] <- 4
+
+
+
+
+df_filtered_inv <- df_filtered_n %>%
+  filter(`q124b: How many pregnancies have you had` < `q124c: How many pregnancies were carried to term?`)
+
+
+df_filtered_inv <- df_filtered_n %>%
+  filter(`q124b: How many pregnancies have you had` < `q124c: How many pregnancies were carried to term?` )
+
+
+
+write.csv(df1,"HF_data_merged_kn_ib.csv")
+
+write.csv(df_filtered,"HFS_data_with_wrong_wards_removed.csv")
+
+write.csv(df_filtered_n,"HFS_data_recoded_for_no_of_pregnancies_kn_and_pregnancies_to_term.csv")
+
+write.csv(df_filtered_inv,"HFS_data_with_preg_carried_to_term_greater_than_total_pregnancies.csv")
+
+
+
+# Recode number of pregnancies based on conditions
+df_filtered_n$`q124b: How many pregnancies have you had` <- ifelse(df_filtered_n$State == 'Kano' & df_filtered_n$`q124c: How many pregnancies were carried to term?` =="1" & df_filtered_n$`q124b: How many pregnancies have you had` == 0,1, df_filtered_n$`q124b: How many pregnancies have you had`) 
+df_filtered_n$`q124b: How many pregnancies have you had` <- ifelse(df_filtered_n$State == 'Kano' & df_filtered_n$`q124c: How many pregnancies were carried to term?` =="2" & df_filtered_n$`q124b: How many pregnancies have you had` == 1,2, df_filtered_n$`q124b: How many pregnancies have you had`) 
+df_filtered_n$`q124b: How many pregnancies have you had` <- ifelse(df_filtered_n$State == 'Kano' & df_filtered_n$`q124c: How many pregnancies were carried to term?` =="3" & df_filtered_n$`q124b: How many pregnancies have you had` == 2,3, df_filtered_n$`q124b: How many pregnancies have you had`) 
+df_filtered_n$`q124b: How many pregnancies have you had` <- ifelse(df_filtered_n$State == 'Kano' & df_filtered_n$`q124c: How many pregnancies were carried to term?` =="4" & df_filtered_n$`q124b: How many pregnancies have you had` == 3,4, df_filtered_n$`q124b: How many pregnancies have you had`) 
+
+write.csv(df_filtered_n,"HFS_data_corrected_no_of_pregnancies_to_match_pregnancies_carried_to_term.csv")
+
+
+
+
+
+
 
 x <- c(summary_Date$`Month_of_Completion`)
 y <- c(summary_Date$Total_Completed_by_DATE)
@@ -2724,6 +2790,441 @@ print(plot_wardresult)
   shape <- st_read(dsn = "/Users/user/Downloads/Kano_metro_ward_sixLGAs/", layer = "Kano_metro_ward_sixLGAs")
   View(shape)
   
+  
+  shapenigeria <- st_read(dsn = "/Users/user/Downloads/gadm36_NGA_shp/", layer = "gadm36_NGA_0")
+  View(shapenigeria)
+  
+  shapestates <- st_read(dsn = "/Users/user/Downloads/gadm36_NGA_shp/", layer = "gadm36_NGA_1")
+  View(shapestates)
+  
+  shapeslga <- st_read(dsn = "/Users/user/Downloads/gadm36_NGA_shp/", layer = "gadm36_NGA_2")
+  View(shapeslga)
+  
+  ggplot(shapeslga)+
+    geom_sf(aes(geometry=geometry))
+  
+  
+  shapeward <- st_read(dsn = "/Users/user/Downloads/ward shp files/nigeria_ward_boundaries/ng_wrds", layer = "ng_wrds")
+  ggplot(shapeward)+
+    geom_sf(aes(geometry=geometry))
+
+  
+  shapeward <- st_read(dsn = "/Users/user/Downloads/ward shp files/nigeria_ward_boundaries/ng_wrds", layer = "ng_wrds")
+  st_write(shapeward, 'Nigeria_Wards.shp')
+    
+  shape_Katsina <- shapeward %>%
+  filter(StateCode =="KT")
+  st_write(shape_Katsina, 'Katsina_Wards.shp')
+  
+  p<-ggplot(shape_Katsina)+
+    geom_sf(aes(geometry=geometry))
+  ggplotly(p)
+  
+  
+  
+  shape_Delta <- shapeward %>%
+    filter(StateCode =="DE")
+  st_write(shape_Delta, 'Delta_Wards.shp')
+  
+  
+  shape_Jigawa <- shapeward %>%
+    filter(StateCode =="JI")
+  st_write(shape_Jigawa, 'Jigawa_Wards.shp')
+  
+  shape_Yobe <- shapeward %>%
+    filter(StateCode =="YO")
+  st_write(shape_Yobe, 'Yobe_Wards.shp')
+  
+  
+  shape_Gombe <- shapeward %>%
+    filter(StateCode =="GO")
+  st_write(shape_Gombe, 'Gombe_Wards.shp')
+  
+  
+  shape_Taraba <- shapeward %>%
+    filter(StateCode =="TA")
+  st_write(shape_Taraba, 'Taraba_Wards.shp')
+  
+
+  shape_Adamawa <- shapeward %>%
+    filter(StateCode =="AD")
+  st_write(shape_Adamawa, 'Adamawa_Wards.shp')
+  
+  
+  
+  shape_Kano <- shapeward %>%
+    filter(StateCode =="KN")
+  st_write(shape_Kano, 'Kano_Wards.shp')
+  
+  
+  shape_Kaduna <- shapeward %>%
+    filter(StateCode =="KD")
+  st_write(shape_Kaduna, 'Kaduna_Wards.shp')
+  
+  
+  shape_Kwara <- shapeward %>%
+    filter(StateCode =="KW")
+  st_write(shape_Kwara, 'Kwara_Wards.shp')
+  
+  
+  shape_Niger <- shapeward %>%
+    filter(StateCode =="NI")
+  st_write(shape_Niger, 'Niger_Wards.shp')
+  
+  
+  
+  shape_Ogun <- shapeward %>%
+    filter(StateCode =="OG")
+  st_write(shape_Ogun, 'Ogun_Wards.shp')
+  
+  
+  
+  osunwards <- c('Aagba',
+                 'Aare',
+                 'Abiri',
+                 'Abiri Ogudu',
+                 'Adeti',
+                 'Adio/Kuelu',
+                 'Afolu',
+                 'Agboora',
+                 'Agowande',
+                 'Ajaba',
+                 'Ajagba/Iwo-Oke',
+                 'Ajaota D',
+                 'Ajebandele',
+                 'Akarabata',
+                 'Akepe',
+                 'Akesin',
+                 'Akogun',
+                 'Alajue I',
+                 'Alajue Oja II',
+                 'Alapomu I',
+                 'Alapomu II',
+                 'Alekuwodo',
+                 'Aludundun',
+                 'Alusekere',
+                 'Amobi',
+                 'Anaye',
+                 'Anlugbua',
+                 'Anwo',
+                 'Apaso',
+                 'Apoti',
+                 'Ara I',
+                 'Ara II',
+                 'Aragan',
+                 'Araromi',
+                 'Araromi Owu',
+                 'Aromiwe',
+                 'Arowojobe',
+                 'Asa/Ajagunlase',
+                 'Asaaoni',
+                 'Ashi/Asaba',
+                 'Asipa/Akinlalu',
+                 'Asunmon',
+                 'Ataoja A',
+                 'Ataoja B',
+                 'Ataoja C',
+                 'Atelewo',
+                 'Atile',
+                 'Atoba',
+                 'Awala I',
+                 'Awala II',
+                 'Awo',
+                 'Aworo',
+                 'Ayee',
+                 'Ayegbogbo',
+                 'Ayegunle',
+                 'Ayepe',
+                 'Ayesan',
+                 'Ayetoro',
+                 'Baale',
+                 'Baba Kekere',
+                 'Babanla/Agante',
+                 'Babasanya',
+                 'Balogun',
+                 'Bara-Ejemu',
+                 'Bode-Osi',
+                 'Bolorunduro',
+                 'Buhari/Isibo',
+                 'Cooperative',
+                 'Dagbolu',
+                 'Edunabon I',
+                 'Edunabon II',
+                 'Egan Aaje',
+                 'Egbedi',
+                 'Eko Ajala/ Ende',
+                 'Ekosin/Iyeku',
+                 'Ekuro/Idoo',
+                 'Eleesi',
+                 'Ereja',
+                 'Erin-Ijesa',
+                 'Erin-Oke',
+                 'Erinmo',
+                 'Eripa',
+                 'Esa Odo',
+                 'Esa Oke',
+                 'Esa Otun',
+                 'Eti-Oni',
+                 'Eyindi',
+                 'Eyingbo',
+                 'Faaji/Opete',
+                 'Faforiji',
+                 'Famia',
+                 'Fiditi',
+                 'Gbogbo',
+                 'Gbongan Rural',
+                 'Gbonni',
+                 'Gidigbo I',
+                 'Gidigbo II',
+                 'Gidigbo III',
+                 'Iba I',
+                 'Iba II',
+                 'Ibala',
+                 'Ibodi',
+                 'Ibokun',
+                 'Ibokun Road',
+                 'Idi Ogun',
+                 'Idiape',
+                 'Ido Ijesa',
+                 'Ido-Osun',
+                 'Idooogun',
+                 'Ifelodun',
+                 'Ifeodan',
+                 'Ifewara I',
+                 'Ifewara II',
+                 'Igangan',
+                 'Igbajo I',
+                 'Igbajo II',
+                 'Igbajo III',
+                 'Igbaye',
+                 'Igbaye/Imuleke',
+                 'Igbogi',
+                 'Ijabe/Ilaodo',
+                 'Ijamo',
+                 'Ijebu-Ijesa',
+                 'Ijeda/Iloko',
+                 'Ijimoba',
+                 'Ijoka',
+                 'Ijugbe',
+                 'Ikeji Arakeji',
+                 'Ikeji Ile',
+                 'Ikeji-Ira',
+                 'Ikija I',
+                 'Ikija II',
+                 'Ikire-Ile/Iwara',
+                 'Ikonifin/Isero',
+                 'Ikotun',
+                 'Ilahun/Ikinyinwa',
+                 'Ilaje',
+                 'Ilaji',
+                 'Ilare',
+                 'Ilare I',
+                 'Ilare II',
+                 'Ilare III',
+                 'Ilare IV',
+                 'Ilase',
+                 'Ilawo',
+                 'Ile-Ogo/Obamoro',
+                 'Ilemo',
+                 'Ilemowu/Asamu',
+                 'Ilie',
+                 'Ilode I',
+                 'Ilode II',
+                 'Imesi Ile',
+                 'Imo',
+                 'Iperin',
+                 'Iperin Eyindi',
+                 'Iperindo',
+                 'Ipetu- Ile',
+                 'Ipetu-Ijesa',
+                 'Ipetumodu I',
+                 'Ipetumodu II',
+                 'Ipole',
+                 'Iragberi I',
+                 'Iragberi II',
+                 'Iremo I',
+                 'Iremo II',
+                 'Iremo III',
+                 'Iremo IV',
+                 'Iremo V',
+                 'Iresi I',
+                 'Iresi II',
+                 'Irojo',
+                 'Isale Asa',
+                 'Isale Ikirun',
+                 'Isale Oba',
+                 'Isale Oba I',
+                 'Isale Oba II',
+                 'Isale Oba III',
+                 'Isale Oba IV',
+                 'Isale Offa',
+                 'Isale osolo',
+                 'Isale Oyo',
+                 'Isaobi',
+                 'Isedo I',
+                 'Isedo II',
+                 'Isinmi',
+                 'Iso Ege',
+                 'Isokun',
+                 'Ita - Ofa',
+                 'Itagunmodi',
+                 'Itakogun',
+                 'Iwara',
+                 'Iwoye',
+                 'Jagun A',
+                 'Jagun B',
+                 'Jagun C',
+                 'Jagun-Jagun',
+                 'Jagun/Osi',
+                 'Jaleoyemi',
+                 'Kere',
+                 'Konda',
+                 'Kuye',
+                 'Lagere',
+                 'Logun',
+                 'Masifa',
+                 'Mefoworade',
+                 'Modakeke I',
+                 'Modakeke II',
+                 'Modakeke III',
+                 'Mogimogi',
+                 'Molarere',
+                 'Molete I',
+                 'Molete II',
+                 'Molete III',
+                 'Moore',
+                 'Moore/ Jaja',
+                 'Moringbere',
+                 'Moro',
+                 'Muroko',
+                 'Oba-Ile',
+                 'Oba-Oke',
+                 'Obaagun',
+                 'Obaale',
+                 'Obalende',
+                 'Obalufon',
+                 'Ode Omu Rural',
+                 'Odeyinka',
+                 'Odogbo',
+                 'Ogbaagbaa 1',
+                 'Ogbaagbaa 2',
+                 'Oja Osun',
+                 'Ojo/Aro',
+                 'Ojomun',
+                 'Oke - Iyin',
+                 'Oke Ada',
+                 'Oke Adan I',
+                 'Oke Adan II',
+                 'Oke Adan III',
+                 'Oke Afo',
+                 'Oke Amola',
+                 'Oke Aree',
+                 'Oke Bale',
+                 'Oke Balogun',
+                 'Oke Ede',
+                 'Oke Eran',
+                 'Oke Iba',
+                 'Oke Iro',
+                 'Oke Iroko',
+                 'Oke Oba I',
+                 'Oke Oba II',
+                 'Oke Ode',
+                 'Oke Ogi',
+                 'Oke Ola',
+                 'Oke Osun',
+                 'Oke Otan',
+                 'Oke Owena',
+                 'Oke Oye',
+                 'Oke-Ejigbo I',
+                 'Oke-Ejigbo II',
+                 'Oke-Ejigbo III',
+                 'Oke-Irun',
+                 'Oke-Omi',
+                 'Okebode',
+                 'Okerewe I',
+                 'Okerewe II',
+                 'Okerewe III',
+                 'Okesa',
+                 'Okini /Ofatedo/ Olorunsogo',
+                 'Okiti/ Monlufon',
+                 'Okua/Ekusa',
+                 'Olla',
+                 'Oloba/Atapara',
+                 'Olobu',
+                 'Olodan',
+                 'Olode',
+                 'Ologun/Agbakin',
+                 'Oloke',
+                 'Oloki/Akoda',
+                 'Olonde',
+                 'Oloti',
+                 'Oloya/Elemesho',
+                 'Olu-Ode',
+                 'Olufi',
+                 'Olufon',
+                 'Olugun',
+                 'Olukotun',
+                 'Olunisa',
+                 'Oluofinrin',
+                 'Olusokun',
+                 'Omisore',
+                 'Oosa',
+                 'Oosa Adifa',
+                 'Ooye',
+                 'Oranran',
+                 'Ore/Agbeye',
+                 'Orisunbare',
+                 'Orita-Sabo',
+                 'Orooruwo',
+                 'Osi',
+                 'Osolo/Oparin',
+                 'Osu I',
+                 'Osu II',
+                 'Osu III',
+                 'Osun Eesa',
+                 'Ota-Efun',
+                 'Otan-Ile',
+                 'Otun Balogun',
+                 'Otun Olufi',
+                 'Owoka',
+                 'Oyere I',
+                 'Oyere II',
+                 'Popo',
+                 'Sabo',
+                 'Sabo/Abogunde I',
+                 'Sabo/Abogunde II',
+                 'Sagba Abogunde',
+                 'Sakasaka',
+                 'Sango',
+                 'Sekona',
+                 'Seriki',
+                 'Sokoto',
+                 'Songbe',
+                 'Telemu',
+                 'Temidire',
+                 'Tokede',
+                 'Waasinmi',
+                 'Yakooyo',
+                 'Yekemi')
+  
+  
+  shape_Osun <- shapeward %>%
+    filter(WardName %in%  osunwards)
+  
+  shape_Osun_ <- shapeward %>%
+    filter(StateCode ==  "OS")
+  
+  
+  
+  ggplot(shape_Osun_)+
+    geom_sf(data=shape_Osun_,aes(geometry=geometry))+
+    geom_sf(data =shape_Osun,aes(fill =WardName))
+  
+  
+  st_write(shape_Osun, 'Osun_Wards.shp')
+  
+  
+    
   #Dry season rename of Lat and Long
   names(dframe)[names(dframe) == "HOUSEHOLD COORDINATE- Latitude"] <- "Latitude"
   names(dframe)[names(dframe) == "HOUSEHOLD COORDINATE- Longitude"] <- "Longitude"
